@@ -2,6 +2,7 @@
   "name": "my-betting-app",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://Chiragl20.github.io/diamond-hunt-betting-app"
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -43,5 +44,4 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11"
   }
-  "homepage": "https://Chiragl20.github.io/diamond-hunt-betting-app"
 }
