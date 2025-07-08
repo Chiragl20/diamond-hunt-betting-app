@@ -299,11 +299,11 @@ const App = () => {
 
                 {/* Balance and Message Display */}
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6 bg-purple-800 p-4 rounded-lg shadow-inner">
-                    <p className="text-lg sm:text-2xl font-semibold mb-2 sm:mb-0">Balance: <span className="text-green-400">${formatBalance(balance)}</span></p> {/* Adjusted balance text size */}
-                    <p className="text-base sm:text-xl text-center flex-grow mx-4"> {/* Adjusted message text size */}
+                    <p className="text-lg sm:text-2xl font-semibold mb-2 sm:mb-0">Balance: <span className="text-green-400">${formatBalance(balance)}</span></p>
+                    <p className="text-base sm:text-xl text-center flex-grow mx-4">
                         {message}
-                        {isBettingPhase && <span className="ml-2 text-sm sm:text-yellow-300 font-bold">{roundCountdown}s</span>} {/* Adjusted countdown text size */}
-                        {!isBettingPhase && !isRacing && winningPetId !== null && <span className="ml-2 text-sm sm:text-yellow-300 font-bold">{nextRoundTimer}s</span>} {/* Adjusted countdown text size */}
+                        {isBettingPhase && <span className="ml-2 text-sm sm:text-yellow-300 font-bold">{roundCountdown}s</span>}
+                        {!isBettingPhase && !isRacing && winningPetId !== null && <span className="ml-2 text-sm sm:text-yellow-300 font-bold">{nextRoundTimer}s</span>}
                     </p>
                 </div>
 
@@ -325,13 +325,14 @@ const App = () => {
 
                 {/* Pet Betting Cards */}
                 {/* Responsive adjustments for mobile: grid-cols-4 on all screens, smaller text/emoji */}
-                <div className="grid grid-cols-4 gap-2 sm:gap-4 mb-8"> {/* Adjusted gap for mobile */}
+                <div className="grid grid-cols-4 gap-1 sm:gap-4 mb-8"> {/* Adjusted gap to be smaller */}
                     {pets.map(pet => (
                         <div
                             key={pet.id}
                             onClick={() => handlePetClick(pet.id)}
                             className={`
-                                relative bg-purple-800 p-2 sm:p-4 rounded-lg shadow-lg border-4 cursor-pointer {/* Adjusted padding */}
+                                relative bg-purple-800 p-1 sm:p-4 rounded-lg shadow-lg border-4 cursor-pointer {/* Adjusted padding to be minimal */}
+                                flex flex-col items-center justify-center aspect-square {/* Added aspect-square and flex properties */}
                                 border-purple-700 {/* Base border */}
                                 ${isRacing && highlightedPetId === pet.id ? 'border-yellow-400 transition-all duration-200 ease-in-out' : ''} {/* Sequential highlight during race */}
                                 ${!isRacing && winningPetId === pet.id ? 'border-yellow-400 scale-105 transform transition-all duration-300 animate-blink-border' : ''} {/* Winner highlight with blink effect after race */}
@@ -341,16 +342,16 @@ const App = () => {
                             `}
                         >
                             {winningPetId === pet.id && (
-                                <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 bg-yellow-400 text-xs sm:text-sm font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-md animate-bounce flex items-center gap-0.5 sm:gap-1"> {/* Adjusted badge size */}
+                                <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 bg-yellow-400 text-xs sm:text-sm font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-md animate-bounce flex items-center gap-0.5 sm:gap-1">
                                     WINNER! <span className="text-sm sm:text-lg">⭐</span> {multiplier}x
                                 </div>
                             )}
-                            <div className="flex flex-col items-center justify-center mb-1 sm:mb-3"> {/* Adjusted margin */}
-                                <span className="text-3xl sm:text-5xl mb-0.5 sm:mb-2">{pet.emoji}</span> {/* Adjusted emoji size */}
-                                <h3 className="text-sm sm:text-xl font-bold text-center">{pet.name}</h3> {/* Adjusted name size */}
+                            <div className="flex flex-col items-center justify-center mb-0.5"> {/* Adjusted margin to be minimal */}
+                                <span className="text-2xl sm:text-5xl mb-0">{pet.emoji}</span> {/* Adjusted emoji size to be smaller */}
+                                <h3 className="text-xs sm:text-xl font-bold text-center leading-tight">{pet.name}</h3> {/* Adjusted name size and line height */}
                             </div>
-                            <p className="text-gray-300 text-center text-xs sm:text-base mb-1 sm:mb-3">Odds: <span className="font-semibold text-white">{pet.odds.toFixed(0)}x</span></p> {/* Adjusted odds size */}
-                            <div className="text-center text-sm sm:text-lg font-bold text-blue-300"> {/* Adjusted bet text size */}
+                            <p className="text-gray-300 text-center text-xs sm:text-base leading-none">Odds: <span className="font-semibold text-white">{pet.odds.toFixed(0)}x</span></p> {/* Adjusted odds size and line height */}
+                            <div className="text-center text-xs sm:text-lg font-bold text-blue-300 mt-0.5"> {/* Adjusted bet text size and margin */}
                                 Bet: ${betAmounts[pet.id] ? betAmounts[pet.id].toFixed(2) : '0.00'}
                             </div>
                         </div>
@@ -359,12 +360,12 @@ const App = () => {
 
                 {/* Bet Amount Selection Buttons */}
                 {isBettingPhase && (
-                    <div className="flex justify-center gap-2 sm:gap-4 mb-8"> {/* Adjusted gap for mobile */}
+                    <div className="flex justify-center gap-1 sm:gap-4 mb-8"> {/* Adjusted gap for mobile */}
                         {betValues.map(value => (
                             <button
                                 key={value}
                                 onClick={() => setSelectedBetValue(value)}
-                                className={`bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105
+                                className={`bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 sm:py-3 sm:px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105
                                     ${selectedBetValue === value ? 'ring-4 ring-yellow-400' : ''}
                                 `}
                             >
