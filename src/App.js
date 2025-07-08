@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // Main App Component
 const App = () => {
     // State variables for the game
-    const [balance, setBalance] = useState(100000); // User's starting balance
+    const [balance, setBalance] = useState(100); // User's starting balance
     const [pets, setPets] = useState([]); // Array of pet objects
     const [betAmounts, setBetAmounts] = useState({}); // Object to store bet amounts for each pet
     const [message, setMessage] = useState("Place your bets! Race starts in..."); // Game messages - Initial message set here
@@ -17,6 +17,9 @@ const App = () => {
     const [nextRoundTimer, setNextRoundTimer] = useState(5); // Countdown for delay between rounds (5 seconds)
     const [recentWins, setRecentWins] = useState([]); // Array to store recent winning pet emojis
     const [luckFactor, setLuckFactor] = useState(0); // Hidden state: -1 (unfavorable) to 1 (favorable)
+    const [showAddBalanceModal, setShowAddBalanceModal] = useState(false); // New state to control modal visibility
+    const [upiId, setUpiId] = useState(''); // New state for UPI ID input
+    const [addBalanceMessage, setAddBalanceMessage] = useState(''); // New state for add balance messages
 
     // Refs for managing timers to ensure they are cleared
     const roundCountdownRef = useRef(null);
@@ -25,8 +28,11 @@ const App = () => {
 
     // Helper function to format balance (e.g., 1000000 -> 1M, 1010000 -> 1.01M, 100000 -> 100k)
     const formatBalance = (num) => {
-        if (num >= 1000000) {
-            return (num / 1000000).toFixed(2).replace(/\.00$/, '') + 'M';
+        if (num >= 10000000) {
+            return (num / 10000000).toFixed(2).replace(/\.00$/, '') + ' Cr';
+        }
+        if (num >= 100000) {
+            return (num / 100000).toFixed(2).replace(/\.00$/, '') + ' L';
         }
         if (num >= 1000) {
             return (num / 1000).toFixed(2).replace(/\.00$/, '') + 'k';
@@ -137,7 +143,7 @@ const App = () => {
             ...prev,
             [petId]: (prev[petId] || 0) + selectedBetValue
         }));
-        setMessage(`Bet $${selectedBetValue} added to ${pets.find(p => p.id === petId).name}.`);
+        setMessage(`Bet 💎${selectedBetValue} added to ${pets.find(p => p.id === petId).name}.`); // UPDATED currency symbol
     };
 
     // Calculate the total amount currently bet across all pets
@@ -249,8 +255,8 @@ const App = () => {
 
                 if (betOnWinner > 0) {
                     winnings = betOnWinner * winner.odds * currentMultiplier;
+                    setMessage(`🎉 ${winner.name} won! You won 💎${winnings.toFixed(2)} with a ${currentMultiplier}x multiplier!`); // UPDATED currency symbol
                     setBalance(prevBalance => prevBalance + winnings); // Add winnings to balance
-                    setMessage(`🎉 ${winner.name} won! You won $${winnings.toFixed(2)} with a ${currentMultiplier}x multiplier!`);
                 } else {
                     setMessage(`😔 ${winner.name} won! You didn't bet on the winner. Better luck next time!`);
                 }
@@ -278,6 +284,30 @@ const App = () => {
     };
 
     const betValues = [2, 50, 500, 1]; // Fixed bet amounts
+    const topUpAmounts = [100, 500, 1000, 5000]; // New: Fixed top-up amounts
+
+    // Function to handle simulated UPI payment
+    const handleUpiPayment = (amount) => {
+        if (!upiId) {
+            setAddBalanceMessage("Please enter a UPI ID.");
+            return;
+        }
+        setAddBalanceMessage(`Processing 💎${amount} payment via UPI ID: ${upiId}...`);
+
+        // Simulate a delay for payment processing
+        setTimeout(() => {
+            // Simulate success
+            setBalance(prevBalance => prevBalance + amount);
+            setAddBalanceMessage(`✅ Successfully added 💎${amount} to your balance!`);
+            setUpiId(''); // Clear UPI ID after successful payment
+            // Optionally close modal after a short delay
+            setTimeout(() => {
+                setShowAddBalanceModal(false);
+                setAddBalanceMessage('');
+            }, 1500);
+        }, 2000); // 2-second delay for simulation
+    };
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-800 to-indigo-900 text-white font-inter p-4 sm:p-8 flex flex-col items-center justify-center">
@@ -299,12 +329,19 @@ const App = () => {
 
                 {/* Balance and Message Display */}
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6 bg-purple-800 p-4 rounded-lg shadow-inner">
-                    <p className="text-lg sm:text-2xl font-semibold mb-2 sm:mb-0">Balance: <span className="text-green-400">${formatBalance(balance)}</span></p>
+                    <p className="text-lg sm:text-2xl font-semibold mb-2 sm:mb-0">Balance: <span className="text-green-400">💎{formatBalance(balance)}</span></p>
                     <p className="text-base sm:text-xl text-center flex-grow mx-4">
                         {message}
                         {isBettingPhase && <span className="ml-2 text-sm sm:text-yellow-300 font-bold">{roundCountdown}s</span>}
                         {!isBettingPhase && !isRacing && winningPetId !== null && <span className="ml-2 text-sm sm:text-yellow-300 font-bold">{nextRoundTimer}s</span>}
                     </p>
+                    {/* Button to open Add Balance Modal */}
+                    <button
+                        onClick={() => setShowAddBalanceModal(true)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-bold py-1.5 px-3 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 mt-2 sm:mt-0"
+                    >
+                        Add Balance
+                    </button>
                 </div>
 
                 {/* Recent Wins History */}
@@ -324,21 +361,20 @@ const App = () => {
 
 
                 {/* Pet Betting Cards */}
-                {/* Responsive adjustments for mobile: grid-cols-4 on all screens, smaller text/emoji */}
-                <div className="grid grid-cols-4 gap-1 sm:gap-4 mb-8"> {/* Adjusted gap to be smaller */}
+                <div className="grid grid-cols-4 gap-1 sm:gap-4 mb-8">
                     {pets.map(pet => (
                         <div
                             key={pet.id}
                             onClick={() => handlePetClick(pet.id)}
                             className={`
-                                relative bg-purple-800 p-1 sm:p-4 rounded-lg shadow-lg border-4 cursor-pointer {/* Adjusted padding to be minimal */}
-                                flex flex-col items-center justify-center aspect-square {/* Added aspect-square and flex properties */}
-                                border-purple-700 {/* Base border */}
-                                ${isRacing && highlightedPetId === pet.id ? 'border-yellow-400 transition-all duration-200 ease-in-out' : ''} {/* Sequential highlight during race */}
-                                ${!isRacing && winningPetId === pet.id ? 'border-yellow-400 scale-105 transform transition-all duration-300 animate-blink-border' : ''} {/* Winner highlight with blink effect after race */}
-                                ${isBettingPhase && selectedBetValue !== null ? 'hover:border-blue-400' : ''} {/* Hover effect in betting phase */}
-                                ${!isBettingPhase && !isRacing && winningPetId !== pet.id ? 'opacity-70 cursor-not-allowed' : ''} {/* Dim non-winners after race */}
-                                ${!isBettingPhase && isRacing ? 'cursor-not-allowed' : ''} {/* No cursor during race */}
+                                relative bg-purple-800 p-1 sm:p-4 rounded-lg shadow-lg border-4 cursor-pointer
+                                flex flex-col items-center justify-center aspect-square
+                                border-purple-700
+                                ${isRacing && highlightedPetId === pet.id ? 'border-yellow-400 transition-all duration-200 ease-in-out' : ''}
+                                ${!isRacing && winningPetId === pet.id ? 'border-yellow-400 scale-105 transform transition-all duration-300 animate-blink-border' : ''}
+                                ${isBettingPhase && selectedBetValue !== null ? 'hover:border-blue-400' : ''}
+                                ${!isBettingPhase && !isRacing && winningPetId !== pet.id ? 'opacity-70 cursor-not-allowed' : ''}
+                                ${!isBettingPhase && isRacing ? 'cursor-not-allowed' : ''}
                             `}
                         >
                             {winningPetId === pet.id && (
@@ -346,13 +382,13 @@ const App = () => {
                                     WINNER! <span className="text-sm sm:text-lg">⭐</span> {multiplier}x
                                 </div>
                             )}
-                            <div className="flex flex-col items-center justify-center mb-0.5"> {/* Adjusted margin to be minimal */}
-                                <span className="text-2xl sm:text-5xl mb-0">{pet.emoji}</span> {/* Adjusted emoji size to be smaller */}
-                                <h3 className="text-xs sm:text-xl font-bold text-center leading-tight">{pet.name}</h3> {/* Adjusted name size and line height */}
+                            <div className="flex flex-col items-center justify-center mb-0.5">
+                                <span className="text-2xl sm:text-5xl mb-0">{pet.emoji}</span>
+                                <h3 className="text-xs sm:text-xl font-bold text-center leading-tight">{pet.name}</h3>
                             </div>
-                            <p className="text-gray-300 text-center text-xs sm:text-base leading-none">Odds: <span className="font-semibold text-white">{pet.odds.toFixed(0)}x</span></p> {/* Adjusted odds size and line height */}
-                            <div className="text-center text-xs sm:text-lg font-bold text-blue-300 mt-0.5"> {/* Adjusted bet text size and margin */}
-                                Bet: ${betAmounts[pet.id] ? betAmounts[pet.id].toFixed(2) : '0.00'}
+                            <p className="text-gray-300 text-center text-xs sm:text-base leading-none">Odds: <span className="font-semibold text-white">{pet.odds.toFixed(0)}x</span></p>
+                            <div className="text-center text-xs sm:text-lg font-bold text-blue-300 mt-0.5">
+                                Bet: 💎{betAmounts[pet.id] ? betAmounts[pet.id].toFixed(2) : '0.00'}
                             </div>
                         </div>
                     ))}
@@ -360,7 +396,7 @@ const App = () => {
 
                 {/* Bet Amount Selection Buttons */}
                 {isBettingPhase && (
-                    <div className="flex justify-center gap-1 sm:gap-4 mb-8"> {/* Adjusted gap for mobile */}
+                    <div className="flex justify-center gap-1 sm:gap-4 mb-8">
                         {betValues.map(value => (
                             <button
                                 key={value}
@@ -369,12 +405,67 @@ const App = () => {
                                     ${selectedBetValue === value ? 'ring-4 ring-yellow-400' : ''}
                                 `}
                             >
-                                {value}
+                                💎{value}
                             </button>
                         ))}
                     </div>
                 )}
             </div>
+
+            {/* Add Balance Modal */}
+            {showAddBalanceModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+                    <div className="bg-purple-800 p-6 rounded-xl shadow-2xl w-full max-w-md border border-purple-600 relative">
+                        <button
+                            onClick={() => {
+                                setShowAddBalanceModal(false);
+                                setAddBalanceMessage(''); // Clear message on close
+                                setUpiId(''); // Clear UPI ID on close
+                            }}
+                            className="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl font-bold"
+                        >
+                            &times;
+                        </button>
+                        <h2 className="text-2xl font-bold text-yellow-300 mb-4 text-center">Add Diamonds</h2>
+
+                        <div className="mb-4">
+                            <label htmlFor="upiId" className="block text-white-300 text-sm font-bold mb-2">
+                                Enter UPI ID (simulated):
+                            </label>
+                            <input
+                                type="text"
+                                id="upiId"
+                                value={upiId}
+                                onChange={(e) => setUpiId(e.target.value)}
+                                placeholder="e.g., yourname@bank"
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-purple-900 border-purple-700 text-white"
+                            />
+                        </div>
+
+                        <p className="text-center text-gray-300 mb-3">Select amount to add:</p>
+                        <div className="flex flex-wrap justify-center gap-3 mb-4">
+                            {topUpAmounts.map(amount => (
+                                <button
+                                    key={amount}
+                                    onClick={() => handleUpiPayment(amount)}
+                                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 text-sm"
+                                >
+                                    💎{amount}
+                                </button>
+                            ))}
+                        </div>
+                        {addBalanceMessage && (
+                            <p className="text-center text-lg font-semibold mt-4">
+                                {addBalanceMessage.startsWith('✅') ? (
+                                    <span className="text-green-400">{addBalanceMessage}</span>
+                                ) : (
+                                    <span className="text-red-400">{addBalanceMessage}</span>
+                                )}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
