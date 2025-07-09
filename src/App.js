@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // Main App Component
 const App = () => {
     // State variables for the game
-    const [balance, setBalance] = useState(100); // User's starting balance
+    const [balance, setBalance] = useState(1000); // User's starting balance
     const [pets, setPets] = useState([]); // Array of pet objects
     const [betAmounts, setBetAmounts] = useState({}); // Object to store bet amounts for each pet
     const [message, setMessage] = useState("Place your bets! Race starts in..."); // Game messages - Initial message set here
